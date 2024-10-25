@@ -1,0 +1,49 @@
+{
+  "name": "todo-task-manager",
+  "version": "1.0.0",
+  "description": "A to-do task manager app using React",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "concurrently \"webpack serve --config webpack.dev.js\" \"nodemon server.js\"",
+    "build": "webpack --config webpack.prod.js"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "@hello-pangea/dnd": "^16.2.0",
+    "@mui/icons-material": "^5.11.16",
+    "@mui/material": "^5.13.2",
+    "@uiw/react-md-editor": "^3.23.3",
+    "axios": "^1.4.0",
+    "buffer": "^6.0.3",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "process": "^0.11.10",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hook-form": "^7.44.2",
+    "react-markdown": "^8.0.7",
+    "react-query": "^3.39.3",
+    "react-router-dom": "^6.11.2",
+    "stream-browserify": "^3.0.0",
+    "url": "^0.11.0",
+    "util": "^0.12.5"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.22.1",
+    "@babel/preset-env": "^7.22.4",
+    "@babel/preset-react": "^7.22.3",
+    "babel-loader": "^9.1.2",
+    "concurrently": "^8.0.1",
+    "css-loader": "^6.8.1",
+    "html-webpack-plugin": "^5.5.1",
+    "nodemon": "^3.1.7",
+    "path-browserify": "^1.0.1",
+    "style-loader": "^3.3.3",
+    "webpack": "^5.84.1",
+    "webpack-cli": "^5.1.1",
+    "webpack-dev-server": "^4.15.0",
+    "webpack-merge": "^5.9.0"
+  }
+}
