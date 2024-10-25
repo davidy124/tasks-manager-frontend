@@ -18,12 +18,7 @@ export const getUsers = () => axios.get(`${API_URL}/users`)
     throw error;
   });
 
-export const getUser = (id) => axios.get(`${API_URL}/users/${id}`)
-  .then(res => res.data)
-  .catch(error => {
-    console.error('Error fetching user:', error.response || error);
-    throw error;
-  });
+export const getUser = (id) => axios.get(`${API_URL}/users/${id}`).then(res => res.data);
 
 export const createUser = (userData) => axios.post(`${API_URL}/users`, userData)
   .then(res => res.data)
@@ -45,3 +40,7 @@ export const deleteUser = (id) => axios.delete(`${API_URL}/users/${id}`)
     console.error('Error deleting user:', error.response || error);
     throw error;
   });
+
+// Add this function to the existing file
+export const searchUsers = (searchTerm) => 
+  axios.get(`${API_URL}/users?search=${searchTerm}`).then(res => res.data);

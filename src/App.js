@@ -9,6 +9,7 @@ import UserManagement from './pages/UserManagement';
 import UserForm from './components/UserForm';
 import TasksManagement from './pages/TasksManagement';
 import TaskForm from './components/TaskForm';
+import TaskDetails from './components/TaskDetails';
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ function App() {
             <Route path="/tasks-management" element={<TasksManagement />} />
             <Route path="/tasks/new" element={<TaskForm />} />
             <Route path="/tasks/edit/:id" element={<TaskForm />} />
+            <Route path="/tasks/:id" element={<TaskDetails />} />
           </Routes>
         </Router>
       </ThemeProvider>

@@ -11,13 +11,13 @@ import {
   Typography,
   IconButton,
   Button,
-  Box
+  Box,
+  Link
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
-import ReactMarkdown from 'react-markdown';
 import { getTasks, deleteTask } from '../api/tasks';
 import Loading from '../components/Loading';
 import DeleteConfirmationDialog from '../components/DeleteConfirmationDialog';
@@ -77,19 +77,25 @@ function TasksManagement() {
           <TableHead>
             <TableRow>
               <TableCell>Title</TableCell>
-              <TableCell>Description</TableCell>
               <TableCell>Status</TableCell>
+              <TableCell>Priority</TableCell>
               <TableCell align="center">Operations</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {tasks.map((task) => (
               <TableRow key={task.id}>
-                <TableCell>{task.title}</TableCell>
                 <TableCell>
-                  <ReactMarkdown>{task.description || ''}</ReactMarkdown>
+                  <Link 
+                    component={RouterLink} 
+                    to={`/tasks/${task.id}`}
+                    state={{ from: '/tasks-management' }}
+                  >
+                    {task.title}
+                  </Link>
                 </TableCell>
                 <TableCell>{task.status}</TableCell>
+                <TableCell>{task.priority}</TableCell>
                 <TableCell align="center">
                   <IconButton component={RouterLink} to={`/tasks/edit/${task.id}`} color="primary" size="small">
                     <EditIcon />
