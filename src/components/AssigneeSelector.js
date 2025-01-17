@@ -8,72 +8,116 @@ import {
   List,
   ListItem,
   ListItemText,
-  Checkbox,
-  Button,
-  CircularProgress
+  ListItemAvatar,
+  Avatar,
+  IconButton,
+  InputAdornment,
+  Box,
+  Typography,
+  CircularProgress,
 } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import PersonIcon from '@mui/icons-material/Person';
+import CloseIcon from '@mui/icons-material/Close';
 import { searchUsers } from '../api/users';
 
-function AssigneeSelector({ open, onClose, onSelect }) {
+function AssigneeSelector({ open, onClose, onSelect, currentAssignee }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedUser, setSelectedUser] = useState(null);
 
-  const { data: users, isLoading, error } = useQuery(
+  const { data: users, isLoading } = useQuery(
     ['searchUsers', searchTerm],
     () => searchUsers(searchTerm),
     {
-      enabled: searchTerm.length > 2,
+      enabled: searchTerm.length >= 2,
+      staleTime: 5000,
+      retry: false,
+      refetchOnWindowFocus: false,
     }
   );
 
-  const handleSearch = (event) => {
-    setSearchTerm(event.target.value);
-  };
-
   const handleSelect = (user) => {
-    setSelectedUser(user);
+    onSelect(user);
+    onClose();
+    setSearchTerm(''); // Clear search when closing
   };
 
-  const handleConfirm = () => {
-    if (selectedUser) {
-      onSelect(selectedUser);
-      onClose();
-    }
+  const handleClose = () => {
+    onClose();
+    setSearchTerm(''); // Clear search when closing
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Select Assignee</DialogTitle>
+    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitle>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          Select Assignee
+          <IconButton onClick={handleClose} size="small">
+            <CloseIcon />
+          </IconButton>
+        </Box>
+      </DialogTitle>
       <DialogContent>
         <TextField
           autoFocus
-          margin="dense"
-          label="Search users"
           fullWidth
-          variant="outlined"
+          placeholder="Type username to search..."
           value={searchTerm}
-          onChange={handleSearch}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon color="action" />
+              </InputAdornment>
+            ),
+            endAdornment: isLoading && (
+              <InputAdornment position="end">
+                <CircularProgress size={20} />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ mb: 2 }}
         />
-        {isLoading && <CircularProgress />}
-        {error && <p>Error: {error.message}</p>}
-        {users && (
-          <List>
-            {users.map((user) => (
-              <ListItem key={user.id} dense button onClick={() => handleSelect(user)}>
-                <Checkbox
-                  edge="start"
-                  checked={selectedUser && selectedUser.id === user.id}
-                  tabIndex={-1}
-                  disableRipple
+        {searchTerm.length < 2 ? (
+          <Typography color="textSecondary" align="center">
+            Type at least 2 characters to search
+          </Typography>
+        ) : (
+          <List sx={{ maxHeight: 300, overflow: 'auto' }}>
+            {users?.map((user) => (
+              <ListItem
+                key={user.id}
+                button
+                onClick={() => handleSelect(user)}
+                selected={currentAssignee?.id === user.id}
+                sx={{
+                  '&:hover': {
+                    backgroundColor: 'action.hover',
+                  },
+                  borderRadius: 1,
+                  mb: 0.5,
+                }}
+              >
+                <ListItemAvatar>
+                  <Avatar sx={{ bgcolor: 'primary.main' }}>
+                    <PersonIcon />
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText
+                  primary={user.username}
+                  secondary={user.role}
+                  primaryTypographyProps={{
+                    variant: 'subtitle2',
+                  }}
                 />
-                <ListItemText primary={user.username} secondary={user.email} />
               </ListItem>
             ))}
+            {users?.length === 0 && (
+              <Typography color="textSecondary" align="center">
+                No users found
+              </Typography>
+            )}
           </List>
         )}
-        <Button onClick={handleConfirm} color="primary" disabled={!selectedUser}>
-          Confirm
-        </Button>
       </DialogContent>
     </Dialog>
   );

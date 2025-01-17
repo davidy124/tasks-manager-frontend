@@ -1,21 +1,29 @@
 import React from 'react';
 import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from '@mui/material';
 
-function DeleteConfirmationDialog({ open, onClose, onConfirm, username }) {
+function DeleteConfirmationDialog({ 
+  open, 
+  onClose, 
+  onConfirm, 
+  title = 'Confirm Delete',
+  message,
+  confirmButtonText = 'Delete',
+  cancelButtonText = 'Cancel'
+}) {
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Confirm Delete</DialogTitle>
+      <DialogTitle>{title}</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          Are you sure you want to delete the user "{username}"?
+          {message}
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} color="primary">
-          Cancel
+        <Button onClick={onClose} color="inherit">
+          {cancelButtonText}
         </Button>
-        <Button onClick={onConfirm} color="error" autoFocus>
-          Delete
+        <Button onClick={onConfirm} color="error" variant="contained" autoFocus>
+          {confirmButtonText}
         </Button>
       </DialogActions>
     </Dialog>

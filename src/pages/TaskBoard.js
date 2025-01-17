@@ -3,14 +3,17 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Box, Typography, Card, CardContent, Chip, Grid, Link, Avatar, Tooltip, Container } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
-import { getTasks, updateTask } from '../api/tasks';
+import { searchTasks, updateTaskStatus } from '../api/tasks';
 import Loading from '../components/Loading';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PersonIcon from '@mui/icons-material/Person';
+import ErrorDisplay from '../components/ErrorDisplay';
+import { useAuth } from '../context/AuthContext';
+import AutoDismissAlert from '../components/AutoDismissAlert';
 
 const columns = [
   { id: 'todo', title: 'To Do', color: '#ff9800' },
-  { id: 'doing', title: 'In Progress', color: '#2196f3' },
+  { id: 'processing', title: 'Processing', color: '#2196f3' },
   { id: 'done', title: 'Done', color: '#4caf50' }
 ];
 
@@ -22,13 +25,46 @@ const priorityColors = {
 
 function TaskBoard() {
   const queryClient = useQueryClient();
-  const { data: tasks, isLoading, isError, error } = useQuery('tasks', getTasks);
+  const { user } = useAuth();
 
-  const updateTaskMutation = useMutation(updateTask, {
-    onSuccess: () => {
-      queryClient.invalidateQueries('tasks');
-    },
-  });
+  const { data: tasksData, isLoading, isError, error } = useQuery(
+    ['tasks', user.id],
+    () => searchTasks({ assigneeId: user.id, pageSize: 100 }),
+    {
+      select: (data) => data.content,
+    }
+  );
+
+  const tasks = Array.isArray(tasksData) ? tasksData : [];
+
+  const updateTaskMutation = useMutation(
+    ({ taskId, status }) => updateTaskStatus(taskId, status),
+    {
+      onMutate: async ({ taskId, status }) => {
+        await queryClient.cancelQueries(['tasks', user.id]);
+
+        const previousData = queryClient.getQueryData(['tasks', user.id]);
+
+        queryClient.setQueryData(['tasks', user.id], old => {
+          if (!old || !old.content) return old;
+          return {
+            ...old,
+            content: old.content.map(task =>
+              task.id === taskId ? { ...task, status } : task
+            )
+          };
+        });
+
+        return { previousData };
+      },
+      onError: (err, variables, context) => {
+        queryClient.setQueryData(['tasks', user.id], context.previousData);
+      },
+      onSettled: () => {
+        queryClient.invalidateQueries(['tasks', user.id]);
+      },
+    }
+  );
 
   const onDragEnd = (result) => {
     if (!result.destination) return;
@@ -39,17 +75,23 @@ function TaskBoard() {
     if (source.droppableId !== destination.droppableId) {
       updateTaskMutation.mutate({
         taskId: task.id,
-        updates: { status: destination.droppableId }
+        status: destination.droppableId
       });
     }
   };
 
   if (isLoading) return <Loading />;
-  if (isError) return <Typography color="error">Error: {error.message}</Typography>;
-  if (!tasks) return <Typography>No tasks found.</Typography>;
+  if (isError) return <ErrorDisplay error={error} />;
 
   return (
     <Container maxWidth="xl" sx={{ mt: 4 }}>
+      {tasks.length === 0 && (
+        <AutoDismissAlert
+          message="No tasks found. Create a new task to get started!"
+          severity="info"
+          duration={5000}
+        />
+      )}
       <Typography variant="h4" gutterBottom sx={{ mb: 4, fontWeight: 'bold', color: 'primary.main' }}>
         Task Board
       </Typography>
@@ -96,7 +138,7 @@ function TaskBoard() {
                                   <Link 
                                     component={RouterLink} 
                                     to={`/tasks/${task.id}`} 
-                                    state={{ from: '/' }} 
+                                    state={{ from: '/board' }} 
                                     color="inherit" 
                                     underline="hover"
                                   >
@@ -112,11 +154,11 @@ function TaskBoard() {
                                         fontWeight: 'bold'
                                       }} 
                                     />
-                                    <Tooltip title={new Date(task.due_date).toLocaleString()}>
+                                    <Tooltip title={new Date(task.dueTime).toLocaleString()}>
                                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                         <AccessTimeIcon sx={{ fontSize: 16, mr: 0.5 }} />
                                         <Typography variant="caption">
-                                          {new Date(task.due_date).toLocaleDateString()}
+                                          {new Date(task.dueTime).toLocaleDateString()}
                                         </Typography>
                                       </Box>
                                     </Tooltip>

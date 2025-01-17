@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tasks-manager-frontend
+spec:
+  selector:
+    matchLabels:
+      app: tasks-manager-frontend
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: tasks-manager-frontend
+    spec:
+      containers:
+        - name: tasks-manager-frontend
+          image: davidy/task-manager-frontend:1.0.0-arm
+          ports:
+            - containerPort: 80
+          env:
+            - name: API_URL
+              value: tasks-manager-backend-service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tasks-manager-frontend-service
+spec:
+  selector:
+    app: tasks-manager-frontend
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tasks-backend-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: www.tasks-manager.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: tasks-manager-frontend-service
+                port:
+                  number: 80
